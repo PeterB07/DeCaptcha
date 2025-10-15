@@ -1,0 +1,14 @@
+.captcha-box {
+  position: relative;
+}
+
+.captcha-box button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: #4CAF50;
+  color: white;
+  padding: 5px 10px;
+  border: none;
+  cursor: pointer;
+}

@@ -1,0 +1,87 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Local CAPTCHA Playground (Owner Only)</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body{font-family:Arial;padding:20px}
+    .captcha-box{border:1px solid #ddd;padding:16px;margin-bottom:24px;max-width:640px}
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+    .cell{width:100%;height:140px;overflow:hidden;border:1px solid #ccc;cursor:pointer;position:relative}
+    .cell img{width:100%;height:100%;object-fit:cover}
+    .selected{outline:4px solid #06f}
+    #controls{margin-top:12px}
+  </style>
+</head>
+<body>
+  <h2>Local CAPTCHA Playground (Owner Only)</h2>
+
+  <div class="captcha-box" id="checkbox-captcha">
+    <h3>Checkbox CAPTCHA</h3>
+    <p>Check the box: I am not a bot</p>
+    <input type="checkbox" id="notabot">
+    <label for="notabot"> I am not a bot</label>
+    <div id="controls">
+      <button id="cb-submit">Submit</button>
+      <span id="cb-result" style="margin-left:12px;color:green"></span>
+    </div>
+  </div>
+
+  <div class="captcha-box" id="grid-captcha" data-target="bus">
+    <h3>Image Grid CAPTCHA</h3>
+    <p>Select all images containing a <strong id="target-name">...</strong>.</p>
+    <div class="grid" id="grid">
+      <!-- Images will be loaded dynamically -->
+    </div>
+    <div id="controls">
+      <button id="grid-submit">Submit selection</button>
+      <span id="grid-result" style="margin-left:12px;color:green"></span>
+    </div>
+  </div>
+
+  <script>
+    function fetchCaptcha() {
+      fetch('http://127.0.0.1:5000/captcha')
+        .then(response => response.json())
+        .then(data => {
+          const grid = document.getElementById('grid');
+          const targetName = document.getElementById('target-name');
+          
+          targetName.textContent = data.target;
+          grid.innerHTML = ''; // Clear existing images
+          
+          data.images.forEach(imageFile => {
+            const cell = document.createElement('div');
+            cell.className = 'cell';
+            const img = document.createElement('img');
+            img.src = `http://127.0.0.1:5000/images/${imageFile}`;
+            cell.appendChild(img);
+            grid.appendChild(cell);
+          });
+          
+          // Re-add event listeners for the new cells
+          document.querySelectorAll('#grid .cell').forEach(c => {
+            c.addEventListener('click', () => {
+              c.classList.toggle('selected');
+            });
+          });
+        });
+    }
+
+    // manual behavior for local testing
+    document.getElementById('cb-submit').addEventListener('click', () => {
+      const ok = document.getElementById('notabot').checked;
+      document.getElementById('cb-result').innerText = ok ? 'Passed' : 'Failed';
+    });
+
+    document.getElementById('grid-submit').addEventListener('click', () => {
+      const sel = document.querySelectorAll('#grid .cell.selected').length;
+      document.getElementById('grid-result').innerText = sel + ' selected';
+    });
+
+    // Fetch the first captcha when the page loads
+    window.onload = fetchCaptcha;
+  </script>
+</body>
+</html>
